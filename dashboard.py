@@ -55,7 +55,7 @@ def update_graph(select_calculate):
                         color=select_calculate,
                         projection='kavrayskiy7',  # 地圖投影的方式
                         scope='world',
-                        title='Olympic Medal Count around world',
+                        title='Olympic medal count around world',
                         hover_name="Country",  # column to add to hover information
                         labels={select_calculate: select_calculate},
                         color_continuous_scale=px.colors.sequential.Reds)
