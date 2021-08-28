@@ -2,6 +2,7 @@ import dash_table
 from dash.dependencies import Input, Output
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 import dash
 import pandas as pd
 import plotly
@@ -14,6 +15,7 @@ df_result = pd.read_csv('./data/medal_count.csv')
 df_winner = pd.read_csv('./data/Award-winning.csv')
 
 # 把 國家名稱 變更為 大家熟悉的國家簡稱
+
 df_result.replace('United States of America', 'United States', inplace=True)
 df_result.replace("People's Republic of China", "China", inplace=True)
 df_result.replace('Republic of Korea', 'Korea', inplace=True)
@@ -32,16 +34,10 @@ df_winner.replace('Great Britain', ' United Kingdom', inplace=True)
 df_winner.replace('Czech Republic', 'Czech', inplace=True)
 df_winner.replace('Hong Kong, China', 'Hong Kong', inplace=True)
 
-
-# dash
-
 app = dash.Dash(__name__,
-                external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
+                external_stylesheets=[dbc.themes.LITERA],
+                )
 server = app.server
-
-
-# 有幾個Output，return就要有幾個值
-# 有幾個imput，函式就要有幾個輸入值
 
 
 @app.callback(
@@ -55,7 +51,7 @@ def update_graph(select_calculate):
                         color=select_calculate,
                         projection='kavrayskiy7',  # 地圖投影的方式
                         scope='world',
-                        title='Olympic medal count around world',
+                        #title='Olympic medal count around world',
                         hover_name="Country",  # column to add to hover information
                         labels={select_calculate: select_calculate},
                         color_continuous_scale=px.colors.sequential.Reds)
@@ -63,27 +59,32 @@ def update_graph(select_calculate):
     fig2 = px.sunburst(df_result,
                        path=['Continent', 'Country'],
                        values='Total_Medal',
-                       title='面積越大->獎牌越多、顏色越紅->金牌比例越高',
+                       #title='The larger area, the more medals.\nThe deeper color, the more gold medals.',
                        color='Gold_Medal',
                        color_continuous_scale='Reds')
 
     return fig, fig2
 
 
-# bar
 @app.callback(
-    Output(component_id='bar', component_property='figure'),
-    Input(component_id='datatable-interactivity', component_property='derived_virtual_data'))
-def update_bar(all_rows_data):
-    df_showTable = pd.DataFrame(all_rows_data)
+    Output(component_id='barChart', component_property='figure'),
+    Input(component_id='select_continent', component_property='value'))
+def update_bar(select_continent):
+    if select_continent == 'World':
+        df_continent = df_result
+        df_continent.sort_values('Gold_Medal')
+    else:
+        df_continent = df_result[df_result['Continent'] == select_continent]
+        df_continent.sort_values('Gold_Medal')
 
-    fig3 = px.bar(df_showTable.loc[:9, :],
+    fig3 = px.bar(df_continent.head(10).iloc[::-1],
                   x=['Gold_Medal', 'Silver_Medal', 'Bronze_Medal'],
                   y='Country',
-                  # text='Total_Medal',
-                  # color_continuous_scale='Reds',
-                  title='The top10 most successful countries',
-                  #labels={"value": "Total_Medal", "variable": "medal"}
+                  labels={'value': 'Medal Count'},
+                  color_discrete_map={
+                      'Gold_Medal': '#ffd700',
+                      'Silver_Medal': '#d3d3d3',
+                      'Bronze_Medal': '#CD853F'}
                   )
     return fig3
 
@@ -99,7 +100,7 @@ def update_pie(select_sport):
     fig4 = px.pie(df_sport,
                   names='Country',
                   values='Medal',
-                  title='Which country dominates which sport in the Olympics!',
+                  #title='Which country dominates which sport in the Olympics!',
                   color_discrete_sequence=px.colors.sequential.RdBu)
     fig4.update_traces(textposition='inside', textinfo='label+value',
                        hole=.5)
@@ -107,8 +108,8 @@ def update_pie(select_sport):
                                          x=0.5, y=0.5, font_size=14, showarrow=False)])
     return fig4
 
-
 # bar country sport
+
 
 @app.callback(
     Output(component_id='bar_sport', component_property='figure'),
@@ -125,128 +126,165 @@ def update_pie(select_country):
                   y='Country',
                   color='Country',
                   text='Sport',
-                  title='Olympic medals each country won per sports.',
+                  #title='Olympic medals each country won per sports.',
                   color_discrete_sequence=px.colors.sequential.RdBu)
     fig5.update_traces(textposition='inside')
 
     return fig5
 
 
-# app Layout
-# components 互動性裝置
-# 更多互動性裝置參考：https://dash.plotly.com/dash-core-components
+card_country = [
+    dbc.CardHeader(
+        html.H5("Country", className='text-center')),
+    dbc.CardBody(
+        html.H1("193", className="card-title text-center"))
+]
+
+card_athlete = [
+    dbc.CardHeader(
+        html.H5("Athlete", className='text-center')),
+    dbc.CardBody(
+        html.H1("11,321", className="card-title text-center"))
+]
+
+card_sport = [
+    dbc.CardHeader(
+        html.H5("Sport", className='text-center')),
+    dbc.CardBody(
+        html.H1("33", className="card-title text-center"))
+]
+
+card_quantity = [
+    dbc.CardHeader(
+        html.H5("Games Quantity", className='text-center')),
+    dbc.CardBody(
+        html.H1("339", className="card-title text-center"))
+]
+
+
+card_medal = [
+    dbc.CardHeader(
+        html.H5("Olympic Medal", className='text-center')),
+    dbc.CardBody(
+        html.H1("1,080", className="card-title text-center"))
+]
 
 app.layout = html.Div([
-    # 第一行
-    html.Div([
-        html.Div([
-            dash_table.DataTable(
-                id='datatable-interactivity',
-                columns=[
-                    {'name': i, 'id': i, 'hideable': True}
-                    if i == 'Rank_by_Total'  # url Continent'                                 #date欄位可被隱藏
-                    else{'name': i, 'id': i}
-                    for i in df_result.columns],
-                data=df_result.to_dict('records'),
-                editable=False,
-                filter_action='native',                             # none 沒有filter欄位
-                sort_action='native',
-                sort_mode='single',                                 # 'single' or 'multi'
-                column_selectable='multi',
-                row_selectable='multi',
-                row_deletable=False,
-                selected_columns=[],
-                selected_rows=[],
-                page_action='native',
-                page_current=0,
-                page_size=10,
-                style_cell={'minWidth': 95, 'maxWidth': 95, 'Width': 95,  # 固定欄寬
-                            'backgroundColor': 'rgb(252,234,234)'},
-                style_cell_conditional=[  # 文字置中
-                    {'if': {'column_id': c}, 'textAlign': 'center'}
-                    for c in df_result.columns],
-                style_header={'backgroundColor': 'rgb(126,25,25)',  # 表頭 紅底白字
-                              'color': 'white'},
-                style_data={'backgroundColor': 'rgb(253,244,244)',
-                            'color': 'rgb(70,70,72)'})  # 內文 粉白底黑字
-        ], className='six columns'),
+    dbc.Row([
+        dbc.Col(html.H1('2020 Summer Olympic in Tokyo',
+                        className='text-center '),
+                width=12)
+    ]),
 
-        html.Div([
-            dcc.Graph(id='bar')
-        ], className='six columns'),
-    ], className='row'),
+    dbc.Row([
+        dbc.Col(html.Br())
+    ]),
 
-    html.Br(),
+    dbc.Row([
+        dbc.Col(dbc.Card(card_country, color="light"),
+                width={'size': 2, 'offset': 1}),
+        dbc.Col(dbc.Card(card_athlete, color="light"), width=2),
+        dbc.Col(dbc.Card(card_sport, color="light"), width=2),
+        dbc.Col(dbc.Card(card_quantity, color="light"), width=2),
+        dbc.Col(dbc.Card(card_medal, color="light"), width=2),
+    ]),
+
+    dbc.Row([
+        dbc.Col(html.Br())
+    ]),
+
+    dbc.Row([
+        dbc.Col(html.H4('The top10 most successful countries.'),
+                width={'size': 'auto', 'offset': 1})
+    ]),
+
+    dbc.Row([
+        dbc.Col(
+            dcc.Dropdown(
+                id='select_continent',
+                value='World',
+                options=[
+                    {'label': 'World', 'value': 'World'},
+                    {'label': 'Asia', 'value': 'Asia'},
+                    {'label': 'Europe', 'value': 'Europe'},
+                    {'label': 'North America', 'value': 'North America'},
+                    {'label': 'South America', 'value': 'South America'},
+                    {'label': 'Africa', 'value': 'Africa'},
+                    {'label': 'Oceania', 'value': 'Oceania'}]),
+            width={'size': 4, 'offset': 1})
+    ]),
+
+    dbc.Row([
+        dbc.Col(dcc.Graph(id='barChart'),
+                width={'size': 8, 'offset': 2})
+    ]),
 
 
-    # 第二行
-    html.Div([
-        html.Div([
-            html.P('Summer Olympic Medal Count By Country',
-                   style={'text-aligh': 'center'}),
+    dbc.Row([
+        dbc.Col(html.H4('Olympic medal count around world'),
+                width={'size': 'auto', 'offset': 1})
+    ]),
+
+
+    dbc.Row([
+        dbc.Col(
             dcc.Dropdown(
                 id='select_calculate',
                 value='Total_Medal',
                 options=[
                     {'label': 'Total_Medal', 'value': 'Total_Medal'},
-                    {'label': 'Gold_Medal', 'value': 'Gold_Medal'},
-                ])
-        ], className='six columns'),
+                    {'label': 'Gold_Medal', 'value': 'Gold_Medal'}]),
+            width={'size': 4, 'offset': 1}),
+        dbc.Col(
+            html.P(
+                'The larger area, the more medals. The deeper color, the more gold medals.'),
+            width={'size': 'auto', 'offset': 2})
+    ]),
 
-        html.Div([
+    dbc.Row([
+        dbc.Col(dcc.Graph(id='choropleth', figure={}),
+                width=6),
 
-        ], className='six columns'),
-    ], className='row'),
+        dbc.Col(dcc.Graph(id='sunburst', figure={}),
+                width=6)
+    ]),
 
-
-    # 第三行
-    html.Div([
-        html.Div([
-            dcc.Graph(id='choropleth', figure={}),
-        ], className='six columns'),
-
-        html.Div([
-            dcc.Graph(id='sunburst', figure={}),
-        ], className='six columns')
-    ], className='row'),
+    dbc.Row([
+        dbc.Col(html.H4('Which country dominates the sport.'),
+                width={'size': 5, 'offset': 1}),
+        dbc.Col(html.H4('How each country performed in the Olympics.'),
+                width={'size': 5, 'offset': 1}),
+    ]),
 
 
-    # 第四行
-    html.Div([
-        html.Div([
+    dbc.Row([
+        dbc.Col([
             html.P('Sport:'),
             dcc.Dropdown(
                 id='select_sport',
                 value='judo',
                 options=[
-                    {'label': i, 'value': i} for i in df_winner.Sport.unique()])
-        ], className='six columns'),
+                    {'label': i, 'value': i} for i in sorted(df_winner.Sport.unique())])],
+            width={'size': 4, 'offset': 1}),
 
-        html.Div([
+        dbc.Col([
             html.P('Country:'),
             dcc.Dropdown(
                 id='select_country',
                 value=['Chinese Taipei', 'Japan', 'Korea', 'China'],
                 multi=True,
                 options=[
-                    {'label': i, 'value': i} for i in df_winner.Country.unique()])
-        ], className='six columns')
-    ], className='row'),
+                    {'label': i, 'value': i} for i in sorted(df_winner.Country.unique())])],
+            width={'size': 4, 'offset': 2})
+    ]),
 
-
-
-    # 第五行
-    html.Div([
-        html.Div([
-            dcc.Graph(id='pie_chart'),
-        ], className='six columns'),
-
-        html.Div([
-            dcc.Graph(id='bar_sport'),
-        ], className='six columns')
-    ], className='row')
-
+    dbc.Row([
+        dbc.Col(dcc.Graph(id='pie_chart'),
+                width=6),
+        dbc.Col(dcc.Graph(id='bar_sport'),
+                width=6)
+    ])
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True)  # jupyter notebook add ', use_reloader=False'
+    app.run_server(debug=True)
