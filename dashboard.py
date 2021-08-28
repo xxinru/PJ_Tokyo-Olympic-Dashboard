@@ -24,7 +24,6 @@ df_result.replace('United States of America', 'United States', inplace=True)
 df_result.replace('Great Britain', ' United Kingdom', inplace=True)
 df_result.replace('Czech Republic', 'Czech', inplace=True)
 df_result.replace('Hong Kong, China', 'Hong Kong', inplace=True)
-
 df_winner.replace('United States of America', 'United States', inplace=True)
 df_winner.replace("People's Republic of China", "China", inplace=True)
 df_winner.replace('Republic of Korea', 'Korea', inplace=True)
@@ -137,28 +136,28 @@ card_country = [
     dbc.CardHeader(
         html.H5("Country", className='text-center')),
     dbc.CardBody(
-        html.H1("193", className="card-title text-center"))
+        html.H4("193", className="card-title text-center"))
 ]
 
 card_athlete = [
     dbc.CardHeader(
         html.H5("Athlete", className='text-center')),
     dbc.CardBody(
-        html.H1("11,321", className="card-title text-center"))
+        html.H4("11,321", className="card-title text-center"))
 ]
 
 card_sport = [
     dbc.CardHeader(
         html.H5("Sport", className='text-center')),
     dbc.CardBody(
-        html.H1("33", className="card-title text-center"))
+        html.H4("33", className="card-title text-center"))
 ]
 
 card_quantity = [
     dbc.CardHeader(
         html.H5("Games Quantity", className='text-center')),
     dbc.CardBody(
-        html.H1("339", className="card-title text-center"))
+        html.H4("339", className="card-title text-center"))
 ]
 
 
@@ -166,7 +165,7 @@ card_medal = [
     dbc.CardHeader(
         html.H5("Olympic Medal", className='text-center')),
     dbc.CardBody(
-        html.H1("1,080", className="card-title text-center"))
+        html.H4("1,080", className="card-title text-center"))
 ]
 
 app.layout = html.Div([
@@ -238,7 +237,7 @@ app.layout = html.Div([
         dbc.Col(
             html.P(
                 'The larger area, the more medals. The deeper color, the more gold medals.'),
-            width={'size': 'auto', 'offset': 2})
+            width={'size': 5, 'offset': 2})
     ]),
 
     dbc.Row([
