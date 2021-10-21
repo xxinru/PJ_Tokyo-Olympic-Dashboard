@@ -15,7 +15,6 @@ df_result = pd.read_csv('./data/medal_count.csv')
 df_winner = pd.read_csv('./data/Award-winning.csv')
 
 # 把 國家名稱 變更為 大家熟悉的國家簡稱
-
 df_result.replace('United States of America', 'United States', inplace=True)
 df_result.replace("People's Republic of China", "China", inplace=True)
 df_result.replace('Republic of Korea', 'Korea', inplace=True)
@@ -107,9 +106,8 @@ def update_pie(select_sport):
                                          x=0.5, y=0.5, font_size=14, showarrow=False)])
     return fig4
 
+
 # bar country sport
-
-
 @app.callback(
     Output(component_id='bar_sport', component_property='figure'),
     Input(component_id='select_country', component_property='value'))
@@ -168,6 +166,7 @@ card_medal = [
         html.H4("1,080", className="card-title text-center"))
 ]
 
+# show the layout
 app.layout = html.Div([
     dbc.Row([
         dbc.Col(html.H1('2020 Summer Olympic in Tokyo',
